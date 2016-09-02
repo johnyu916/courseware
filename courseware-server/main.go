@@ -7,13 +7,21 @@ import (
 	"github.com/attic-labs/noms/go/marshal"
 	"github.com/attic-labs/noms/go/spec"
 	"github.com/attic-labs/noms/go/types"
+	"github.com/johnyu916/courseware"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 )
 
+type Exam courseware.Exam
+type Submission courseware.Submission
+
 var exam Exam
 var ds dataset.Dataset
+
+type History struct {
+	Submissions []Submission
+}
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// load a problem
@@ -36,7 +44,7 @@ func problemHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		submissions := getSubmissions(ds)
+		submissions := courseware.GetSubmissions(ds)
 		submissions = submissions.Set(types.Number(0), np)
 		_, err = ds.CommitValue(submissions)
 		if err != nil {
@@ -55,7 +63,7 @@ func problemHandler(w http.ResponseWriter, r *http.Request) {
 func historyHandler(w http.ResponseWriter, r *http.Request) {
 	// show the most recent version
 	var submissions []Submission
-	data := getSubmissions(ds)
+	data := courseware.GetSubmissions(ds)
 	data.IterAll(func(k, v types.Value) {
 		var s Submission
 		err := marshal.Unmarshal(v, &s)
@@ -67,7 +75,7 @@ func historyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	})
 	t, _ := template.ParseFiles("history.html")
-	t.Execute(w, submissions[0])
+	t.Execute(w, History{submissions})
 }
 
 func main() {
