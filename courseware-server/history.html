@@ -1,5 +1,17 @@
+<a href="/history">Submission history</a>
+<a href="/problem">Problems</a>
+
 <div>
-{{ range .Submissions}}
-  {{.UserId}} {{.ProblemId}} {{.Submitted}}
+Newest at the top
+{{ range .Commits}}
+<div>
+  Commit hash: {{.Hash}}
+  {{ range .Submissions}}
+  <div>
+  User ID: {{.UserId}} Problem ID: {{.ProblemId}} Submission: {{.Submitted}}
+  </div>
+  {{ end }}
+  <hr>
+</div>
 {{ end }}
 </div>

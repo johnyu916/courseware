@@ -26,6 +26,11 @@ type Submission struct {
 	Submitted string
 }
 
+type Commit struct {
+	Hash        string
+	Submissions []Submission
+}
+
 func GetSubmissions(ds dataset.Dataset) types.Map {
 	hv, ok := ds.MaybeHeadValue()
 	if ok {
@@ -35,7 +40,7 @@ func GetSubmissions(ds dataset.Dataset) types.Map {
 	}
 }
 
-func getHistory() []Submission {
+func GetHistory() []Commit {
 	dbpath := "http://localhost:8000::courseware"
 	database, value, err := spec.GetPath(dbpath)
 	defer database.Close()
@@ -44,25 +49,29 @@ func getHistory() []Submission {
 		panic(err)
 	}
 
+	var commits []Commit
 	origCommit, _ := value.(types.Struct)
 	iter := NewCommitIterator(database, origCommit)
-	var submissions []Submission
 	for node, ok := iter.Next(); ok; node, ok = iter.Next() {
 		hashStr := node.commit.Hash().String()
 		fmt.Println(hashStr)
 
 		value := node.commit.Get(datas.ValueField)
 		valMap := value.(types.Map)
+		var submissions []Submission
+
 		valMap.IterAll(func(k, v types.Value) {
 			var s Submission
 			err := marshal.Unmarshal(v, &s)
 			if err != nil {
 				fmt.Println("Error during unmarshalling")
 			} else {
+				submissions = append(submissions, s)
 				fmt.Println(s)
 			}
-
 		})
+		commit := Commit{hashStr, submissions}
+		commits = append(commits, commit)
 	}
-	return submissions
+	return commits
 }

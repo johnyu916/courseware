@@ -1,5 +1,12 @@
-<div>{{.Text}}</div>
+
+<a href="/history">Submission History</a>
+<a href="/problem">Problems</a>
+
+{{ range .ProblemSubmissions }}
+<div>{{.Problem.Text}}</div>
 <form method="post">
-<input type="text" name="answer"></input>
+<input type="hidden" name="problemid" value="{{.Problem.Id}}">
+<input type="text" name="answer" value="{{.Submission.Submitted}}"></input>
 <input type="submit" value="Submit">
 </form>
+{{ end }}
